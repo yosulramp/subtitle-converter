@@ -7,13 +7,15 @@
 
 from __future__ import unicode_literals, absolute_import, division
 from ttml2ssa import Ttml2Ssa
+import glob
 
 if __name__ == '__main__':
 
     import argparse
 
     argparser = argparse.ArgumentParser(
-        description='Convert TTML/XML/DFXP/SRT/VTT subtitles to SubRip (SRT), SSA/ASS or WEBVTT (VTT) format.')
+        prog="subconv",
+        description='Convert DFXP subtitles to SRT format.')
     argparser.add_argument('input-files',
         nargs="*",
         help='subtitle files',
@@ -190,15 +192,26 @@ if __name__ == '__main__':
         quit()
 
     input_files = getattr(args, 'input-files')
+    # ref. https://stackoverflow.com/a/71353522
+    matched_files = []
+    for file in input_files:
+        if glob.escape(file) != file:
+            # -> There are glob pattern chars in the string
+            matched_files.extend(glob.glob(file))
+        else:
+            matched_files.append(file)
+
     output_file = getattr(args, 'output-file')
 
-    if output_file and len(input_files) > 1:
-        del input_files[1:]
+    if output_file and len(matched_files) > 1:
+        del matched_files[1:]
 
-    if not input_files:
+    if not matched_files:
         argparser.print_usage()
 
-    for input_file in input_files:
+    print(f"input_files: {matched_files}")
+
+    for input_file in matched_files:
         if output_file:
             output = output_file
         else:
